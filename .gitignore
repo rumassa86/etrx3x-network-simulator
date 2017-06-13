@@ -1,0 +1,28 @@
+# Compiled python modules
+*.pyc
+*.pyo
+
+# Files to store SuiteCore messages
+*.save
+
+# Log files
+*.log
+
+# Input test for program or scripts
+*.in
+
+# CSV test file
+*.csv
+
+# VIM temporary files
+*.swp
+*.swo
+
+# ????
+.idea/
+
+# Setuptools distribution folder
+/dist/
+
+# Python egg metadata, regenerated from source files by setuptools
+/*.egg-info
