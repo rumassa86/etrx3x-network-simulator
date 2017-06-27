@@ -4054,10 +4054,10 @@ class ETRX3xATCommand:
                     "No. | Dev |       EUI        |  ID  | LQI\r\n"
 
                 for i, nnode in enumerate(neighbour_table[index:index + 3]):
-                    ntable_message += "{:02X}. | {} | {} | {} |"
-                    " {:02X}\r\n".format(
-                        (index + i), nnode["type"], nnode["node_eui"],
-                        nnode["node_id"], nnode["signal"])
+                    ntable_message += "{:02X}. | {} | {} | {} | {:02X}\r\n".\
+                        format(
+                            (index + i), nnode["type"], nnode["node_eui"],
+                            nnode["node_id"], nnode["signal"])
 
         return ntable_message
 
