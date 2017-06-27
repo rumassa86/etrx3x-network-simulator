@@ -231,6 +231,35 @@ class ETRX3xSimulator(object):
 
             self.zb_networks[pan_eid] = net
 
+    def get_ntable(self, node_id):
+        # {"type": "COO", "node_eui": "000D6F0000BA19DB",
+        #     "node_id": "0000", "signal": 255},
+        node_ntable_list = []
+
+        node = self.local_zb_network.get_node(node_id)
+        if(node is not None):
+            for entry in node.get_ntable():
+                node_id_dst = entry.get_node_id_dest()
+                node_dst = self.local_zb_network.get_node(node_id_dst)
+
+                node_eui_dst = node_dst.get_node_eui()
+                node_type_dst = node_dst.get_type()
+                node_link = {
+                    "type": node_type_dst,
+                    "node_eui": node_eui_dst,
+                    "node_id": node_id_dst,
+                    "signal": entry.get_quality()
+                }
+                node_ntable_list.append(node_link)
+
+            return node_ntable_list
+        else:
+            raise ETRX3xSimulatorException(
+                "get_ntable: node id {} not found".format(node_id))
+
+    def get_local_node_delay(self):
+        return int(self.local_node.get_sregister_value("4F"), 16) / 1000
+
     def get_seq_number(self):
         seq_number = self.seq_counter
         self.seq_counter = (self.seq_counter + 1) % 256
@@ -552,27 +581,32 @@ class ETRX3xSimulator(object):
                             except ValueError:
                                 index = -1
 
-                            node = params[1]
-                            if(validate_node_identifier(node) is False):
+                            node_eui = params[1]
+                            if(validate_node_identifier(node_eui) is False):
                                 # 05 = invalid_parameter
                                 response = self.etrx3x_at.error_response("05")
 
                             else:
-                                # TODO(rubens) use ZBNetwork data to find node
-                                node_found = False
-                                if(node_found is True):
+                                # TODO(rubens): check for address in zigbee.py
+                                # library file
+                                node = self.local_zb_network.get_node_eui(
+                                    node_eui.upper())
+
+                                if(node is not None):
                                     # "FF" - local node
                                     seq_num = self.get_seq_number()
                                     response = self.etrx3x_at.seq_response(
                                         seq_num)
                                     response += self.etrx3x_at.ok_response()
 
+                                    node_id = node.get_node_id()
                                     error_code = "00"
 
                                     async_response = self.etrx3x_at.\
                                         at_ntable_response(
-                                            self.local_node_id, error_code,
-                                            index, self.local_node_ntable)
+                                            node_id, error_code,
+                                            index, self.get_ntable(
+                                                node_id))
                                     async_response += self.etrx3x_at.\
                                         ack_response(seq_num)
 
@@ -587,15 +621,12 @@ class ETRX3xSimulator(object):
                                     response += \
                                         self.etrx3x_at.ok_response()
 
-                                    delay = int(
-                                        self.local_node_sregs["4F"],
-                                        16) / 1000
-
                                     async_response = self.etrx3x_at.\
                                         nack_response(seq_num)
 
                                     self.write_async_message(
-                                        async_response, delay=delay)
+                                        async_response,
+                                        delay=self.get_local_node_delay())
 
                         elif(re.match(
                                 "at\+ntable:[0-9a-f]{2},[0-9a-f]{4}",
@@ -608,15 +639,14 @@ class ETRX3xSimulator(object):
                             except ValueError:
                                 index = -1
 
-                            node = params[1]
-                            if(validate_node_identifier(node) is False):
+                            node_id = params[1]
+                            if(validate_node_identifier(node_id) is False):
                                 # 05 = invalid_parameter
                                 response = self.etrx3x_at.error_response("05")
 
                             else:
-                                # TODO(rubens) use ZBNetwork data to find node
-                                node_found = False
-                                if(node_found is True):
+                                node = self.local_zb_network.get_node(node_id)
+                                if(node is not None):
                                     # "FF" - local node
                                     seq_num = self.get_seq_number()
                                     response = self.etrx3x_at.seq_response(
@@ -627,8 +657,9 @@ class ETRX3xSimulator(object):
 
                                     async_response = self.etrx3x_at.\
                                         at_ntable_response(
-                                            self.local_node_id, error_code,
-                                            index, self.local_node_ntable)
+                                            node_id, error_code,
+                                            index, self.get_ntable(
+                                                node_id))
                                     async_response += self.etrx3x_at.\
                                         ack_response(seq_num)
 
@@ -643,15 +674,12 @@ class ETRX3xSimulator(object):
                                     response += \
                                         self.etrx3x_at.ok_response()
 
-                                    delay = int(
-                                        self.local_node_sregs["4F"],
-                                        16) / 1000
-
                                     async_response = self.etrx3x_at.\
                                         nack_response(seq_num)
 
                                     self.write_async_message(
-                                        async_response, delay=delay)
+                                        async_response,
+                                        delay=self.get_local_node_delay())
 
                         elif(re.match(
                                 "at\+ntable:[0-9a-f]{2},[0-9a-f]{2}",
@@ -677,10 +705,13 @@ class ETRX3xSimulator(object):
 
                                     error_code = "00"
 
+                                    node_id = self.local_node.get_node_id()
+
                                     async_response = self.etrx3x_at.\
                                         at_ntable_response(
-                                            self.local_node_id, error_code,
-                                            index, self.local_node_ntable)
+                                            node_id, error_code,
+                                            index, self.get_ntable(node_id))
+
                                     async_response += self.etrx3x_at.\
                                         ack_response(seq_num)
 
@@ -688,11 +719,14 @@ class ETRX3xSimulator(object):
                                         async_response,
                                         delay=0.1)
                                 else:
-                                    # Remote
-                                    addr = self.local_node_atable[
-                                        address_table_index]
+                                    # Remote node
 
-                                    if(addr["node_id"] == "FFFF"):
+                                    # Get remote node id
+                                    addr = self.local_node.get_address_table()
+                                    node_id = addr[address_table_index][1]
+                                    print "{!r}".format(node_id)
+
+                                    if(node_id == "FFFF"):
                                         response = self.etrx3x_at.\
                                             error_response("01")
                                     else:
@@ -702,15 +736,39 @@ class ETRX3xSimulator(object):
                                         response += \
                                             self.etrx3x_at.ok_response()
 
-                                        delay = int(
-                                            self.local_node_sregs["4F"],
-                                            16) / 1000
+                                        node = self.local_zb_network.get_node(
+                                            node_id)
+                                        if(node is not None):
+                                            # "FF" - local node
+                                            error_code = "00"
 
-                                        async_response = self.etrx3x_at.\
-                                            nack_response(seq_num)
+                                            async_response = self.etrx3x_at.\
+                                                at_ntable_response(
+                                                    node_id, error_code,
+                                                    index, self.get_ntable(
+                                                        node_id))
 
-                                        self.write_async_message(
-                                            async_response, delay=delay)
+                                            async_response += self.etrx3x_at.\
+                                                ack_response(seq_num)
+
+                                            self.write_async_message(
+                                                async_response,
+                                                delay=0.1)
+                                        else:
+                                            # Remote
+                                            seq_num = self.get_seq_number()
+                                            response = self.etrx3x_at.\
+                                                seq_response(seq_num)
+                                            response += \
+                                                self.etrx3x_at.ok_response()
+
+                                            async_response = self.etrx3x_at.\
+                                                nack_response(seq_num)
+
+                                            self.write_async_message(
+                                                async_response,
+                                                delay=self.
+                                                get_local_node_delay())
 
                             except ValueError:
                                 # 05 - Invalid parameter
@@ -722,23 +780,72 @@ class ETRX3xSimulator(object):
                                 response = self.etrx3x_at.error_response("01")
 
                         elif(re.match(
+                                "at\+ucastb:[0-9a-f]{2},[0-9a-f]{16}",
+                                store_data)):
+                            # Send UCAST with binary payloa for target node
+                            # eui address format
+                            # 05 = invalid_parameter
+                            response = self.etrx3x_at.error_response("05")
+
+                        elif(re.match(
+                                "at\+ucastb:[0-9a-f]{2},[0-9a-f]{4}",
+                                store_data)):
+                            # Send UCAST with binary payload for target node
+                            # id address format
+                            # 05 = invalid_parameter
+                            response = self.etrx3x_at.error_response("05")
+
+                        elif(re.match(
+                                "at\+ucastb:[0-9a-f]{2},[0-9a-f]{2}",
+                                store_data)):
+                            # Send UCAST with binary payload for target node
+                            # in address table index format
+                            # 05 = invalid_parameter
+                            response = self.etrx3x_at.error_response("05")
+
+                        elif(re.match(
                                 "at\+ucast:[0-9a-f]{2},[0-9a-f]{16}",
                                 store_data)):
-                            # NTABLE from address in node eui format (16 hexa)
+                            # Send UCAST for target node eui address format
                             # 05 = invalid_parameter
                             response = self.etrx3x_at.error_response("05")
 
                         elif(re.match(
                                 "at\+ucast:[0-9a-f]{2},[0-9a-f]{4}",
                                 store_data)):
-                            # NTABLE from address in node id format (4 hexa)
+                            # Send UCAST for target node id address format
                             # 05 = invalid_parameter
                             response = self.etrx3x_at.error_response("05")
 
                         elif(re.match(
                                 "at\+ucast:[0-9a-f]{2},[0-9a-f]{2}",
                                 store_data)):
-                            # NTABLE from address in address index (16 hexa)
+                            # Send UCAST for target node in address table index
+                            # format
+                            # 05 = invalid_parameter
+                            response = self.etrx3x_at.error_response("05")
+
+                        elif(re.match(
+                                "at\+atrems:[0-9a-f]{16},[0-9a-f]{2}?",
+                                store_data)):
+                            # Get remote SRegister from node with address in
+                            # eui format (16 hexa)
+                            # 05 = invalid_parameter
+                            response = self.etrx3x_at.error_response("05")
+
+                        elif(re.match(
+                                "at\+atrems:[0-9a-f]{4},[0-9a-f]{2}?",
+                                store_data)):
+                            # Get remote SRegister from node with address in
+                            # node id format (4 hexa)
+                            # 05 = invalid_parameter
+                            response = self.etrx3x_at.error_response("05")
+
+                        elif(re.match(
+                                "at\+atrems:[0-9a-f]{2},[0-9a-f]{2}?",
+                                store_data)):
+                            # Get remote SRegister from node with address in
+                            # address index format format (4 hexa)
                             # 05 = invalid_parameter
                             response = self.etrx3x_at.error_response("05")
 
@@ -940,7 +1047,7 @@ def main():
 
     coo_zbnode = {
         "id": "0000",
-        "eui": "E000100000000000",
+        "eui": "ED00010000000000",
         "type": "COO",
         "parent_id": "FFFF",
         "sregs": {
@@ -950,7 +1057,7 @@ def main():
 
     zbnode0 = {
         "id": "0001",
-        "eui": "E000100000000001",
+        "eui": "ED00010000000001",
         "type": "FFD",
         "parent_id": "0000",
         "sregs": {
