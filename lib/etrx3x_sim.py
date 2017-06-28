@@ -105,35 +105,9 @@ class ETRX3xSimulator(object):
         self.write_queue = Queue.Queue()
         self.write_thread = None
 
-        self.local_node_atable = [
-            {"active": False, "node_id": "FFFF",
-                "node_eui": "FFFFFFFFFFFFFFFF"},
-            {"active": False, "node_id": "FFFF",
-                "node_eui": "FFFFFFFFFFFFFFFF"},
-            {"active": False, "node_id": "FFFF",
-                "node_eui": "FFFFFFFFFFFFFFFF"},
-            {"active": False, "node_id": "FFFF",
-                "node_eui": "FFFFFFFFFFFFFFFF"},
-            {"active": False, "node_id": "FFFF",
-                "node_eui": "FFFFFFFFFFFFFFFF"},
-            {"active": False, "node_id": "0000",
-                "node_eui": "000D6F0000BA19DB"},
-            {"active": False, "node_id": "FFFF",
-                "node_eui": "FFFFFFFFFFFFFFFF"}
-        ]
-
-        self.local_node_ntable = [
-            {"type": "COO", "node_eui": "000D6F0000BA19DB",
-                "node_id": "0000", "signal": 255},
-            {"type": "FFD", "node_eui": "000D6F0002544E9D",
-                "node_id": "AB76", "signal": 255},
-            {"type": "FFD", "node_eui": "000D6F00023EC0D5",
-                "node_id": "D2F8", "signal": 255},
-            {"type": "FFD", "node_eui": "000D6F00027D2566",
-                "node_id": "B5B4", "signal": 253},
-            {"type": "FFD", "node_eui": "000D6F000B47CC5F",
-                "node_id": "C595", "signal": 255},
-        ]
+        # AT input character buffer limit
+        # This is used to simulate error 0C (Too many characters)
+        self.serial_input_limit = 129
 
     def _validate_etrx3x_config(self, config_dict):
         try:
@@ -143,6 +117,19 @@ class ETRX3xSimulator(object):
                     sreg, config_dict[sreg])
         except ValueError as err:
             raise ETRX3xSimulatorException(err)
+
+    def _validate_node_identifier(self, node_id):
+        if(validate_node_identifier(node_id) is False):
+            raise ValueError("invalid node id {!r} format".format(node_id))
+
+    def _validate_address_index(self, index):
+        if(len(index) != 2):
+            raise ValueError(
+                "invalid index length format: {}. Should be length 2".format(
+                    index))
+
+        if(re.match("[0-9A-Z]{2}", index.upper()) is None):
+            raise ValueError("invalid index format: {!r}".format(index))
 
     def _load_zb_networks(self, zbnet_list, local_node_eui, local_pan_eid):
         for zbnet in zbnet_list:
@@ -161,17 +148,19 @@ class ETRX3xSimulator(object):
             if(pan_eid == local_pan_eid):
                 net.set_local_pan(zbpan)
 
-            for node in zbnet["nodes"]:
-                node_id = node["id"]
-                node_eui = node["eui"]
-                node_type = node["type"]
-                node_parent_id = node["parent_id"]
-                node_sregs = node["sregs"]
+            for dict_node in zbnet["nodes"]:
+                node_id = dict_node["id"]
+                node_eui = dict_node["eui"]
+                node_type = dict_node["type"]
+                node_parent_id = dict_node["parent_id"]
+                node_sregs = dict_node["sregs"]
 
                 node = net.add_node(
                     node_eui,
                     node_id=node_id,
-                    node_type=node_type)
+                    node_type=node_type,
+                    registers=[]  # Use '[]' to set new array object
+                )
 
                 if(node_type == "COO"):
                     regs = self.coo_etrx3x_sregs
@@ -188,7 +177,7 @@ class ETRX3xSimulator(object):
                         "_load_zb_networks: invalid node type {!r}".format(
                             node_type))
 
-                # Set nodes sregisters values
+                # Set nodes set sregisters values
                 for reg in regs:
                     # TODO(rubens): set pan channel mask in hex format
                     # regs["00"] = pan_channel
@@ -208,6 +197,10 @@ class ETRX3xSimulator(object):
                         node.add_sregister(reg, pan_linkkey)
                     else:
                         node.add_sregister(reg, regs[reg])
+
+                # Set custom sregisters from node
+                for reg in node_sregs:
+                    node.add_sregister(reg, node_sregs[reg])
 
                 # Set Address Table
                 for i in range(0, 7):
@@ -582,11 +575,9 @@ class ETRX3xSimulator(object):
                                 index = -1
 
                             node_eui = params[1]
-                            if(validate_node_identifier(node_eui) is False):
-                                # 05 = invalid_parameter
-                                response = self.etrx3x_at.error_response("05")
+                            try:
+                                self._validate_node_identifier(node_eui)
 
-                            else:
                                 # TODO(rubens): check for address in zigbee.py
                                 # library file
                                 node = self.local_zb_network.get_node_eui(
@@ -628,6 +619,10 @@ class ETRX3xSimulator(object):
                                         async_response,
                                         delay=self.get_local_node_delay())
 
+                            except ValueError:
+                                # 05 = invalid_parameter
+                                response = self.etrx3x_at.error_response("05")
+
                         elif(re.match(
                                 "at\+ntable:[0-9a-f]{2},[0-9a-f]{4}",
                                 store_data)):
@@ -640,11 +635,9 @@ class ETRX3xSimulator(object):
                                 index = -1
 
                             node_id = params[1]
-                            if(validate_node_identifier(node_id) is False):
-                                # 05 = invalid_parameter
-                                response = self.etrx3x_at.error_response("05")
+                            try:
+                                self._validate_node_identifier(node_id)
 
-                            else:
                                 node = self.local_zb_network.get_node(node_id)
                                 if(node is not None):
                                     # "FF" - local node
@@ -680,6 +673,10 @@ class ETRX3xSimulator(object):
                                     self.write_async_message(
                                         async_response,
                                         delay=self.get_local_node_delay())
+
+                            except ValueError:
+                                # 05 = invalid_parameter
+                                response = self.etrx3x_at.error_response("05")
 
                         elif(re.match(
                                 "at\+ntable:[0-9a-f]{2},[0-9a-f]{2}",
@@ -724,7 +721,6 @@ class ETRX3xSimulator(object):
                                     # Get remote node id
                                     addr = self.local_node.get_address_table()
                                     node_id = addr[address_table_index][1]
-                                    print "{!r}".format(node_id)
 
                                     if(node_id == "FFFF"):
                                         response = self.etrx3x_at.\
@@ -804,26 +800,180 @@ class ETRX3xSimulator(object):
                             response = self.etrx3x_at.error_response("05")
 
                         elif(re.match(
-                                "at\+ucast:[0-9a-f]{2},[0-9a-f]{16}",
+                                "at\+ucast:[0-9a-f]{16},[\0-\xFF]*",
                                 store_data)):
                             # Send UCAST for target node eui address format
-                            # 05 = invalid_parameter
-                            response = self.etrx3x_at.error_response("05")
+                            # Send UCAST for target node id address format
+                            params = store_data.split(":")[1].split(",")
+
+                            node_eui = params[0]
+                            payload = ",".join(params[1:])
+                            try:
+                                self._validate_node_identifier(node_eui)
+
+                                seq_num = self.get_seq_number()
+                                response = self.etrx3x_at.seq_response(
+                                    seq_num)
+                                response += \
+                                    self.etrx3x_at.ok_response()
+
+                                node = self.local_zb_network.get_node_eui(
+                                    node_eui)
+
+                                if(node is not None):
+                                    # "FF" - local node
+                                    error_code = "00"
+
+                                    # TODO(rubens): forward message to
+                                    # MCU handler
+                                    # async_response = self.etrx3x_at.\
+                                    #     ucast_notification()
+
+                                    async_response = self.etrx3x_at.\
+                                        ack_response(seq_num)
+
+                                    self.write_async_message(
+                                        async_response,
+                                        delay=0.1)
+                                else:
+                                    # Remote
+                                    async_response = self.etrx3x_at.\
+                                        nack_response(seq_num)
+
+                                    self.write_async_message(
+                                        async_response,
+                                        delay=self.
+                                        get_local_node_delay())
+
+                            except ValueError:
+                                # 05 - Invalid parameter
+                                response = self.etrx3x_at.error_response("05")
 
                         elif(re.match(
-                                "at\+ucast:[0-9a-f]{2},[0-9a-f]{4}",
+                                "at\+ucast:[0-9a-f]{4},[\0-\xFF]*",
                                 store_data)):
                             # Send UCAST for target node id address format
-                            # 05 = invalid_parameter
-                            response = self.etrx3x_at.error_response("05")
+                            params = store_data.split(":")[1].split(",")
+
+                            try:
+                                node_id = int(params[0], 16)
+                                payload = ",".join(params[1:])
+
+                                seq_num = self.get_seq_number()
+                                response = self.etrx3x_at.seq_response(
+                                    seq_num)
+                                response += \
+                                    self.etrx3x_at.ok_response()
+
+                                node = self.local_zb_network.get_node(
+                                    node_id)
+                                print node
+
+                                if(node is not None):
+                                    # TODO(rubens): forward message to
+                                    # MCU handler
+                                    # async_response = self.etrx3x_at.\
+                                    #     ucast_notification()
+
+                                    async_response = self.etrx3x_at.\
+                                        ack_response(seq_num)
+
+                                    self.write_async_message(
+                                        async_response,
+                                        delay=0.1)
+                                else:
+                                    # Remote
+                                    async_response = self.etrx3x_at.\
+                                        nack_response(seq_num)
+
+                                    self.write_async_message(
+                                        async_response,
+                                        delay=self.
+                                        get_local_node_delay())
+
+                            except ValueError:
+                                # 05 - Invalid parameter
+                                response = self.etrx3x_at.error_response("05")
 
                         elif(re.match(
-                                "at\+ucast:[0-9a-f]{2},[0-9a-f]{2}",
+                                "at\+ucast:[0-9a-f]{2},[\0-\xFF]*",
                                 store_data)):
                             # Send UCAST for target node in address table index
                             # format
-                            # 05 = invalid_parameter
-                            response = self.etrx3x_at.error_response("05")
+                            params = store_data.split(":")[1].split(",")
+                            table_index = params[0]
+                            payload = ",".join(params[1:])
+
+                            try:
+                                address_table_index = int(table_index, 16)
+
+                                seq_num = self.get_seq_number()
+                                response = self.etrx3x_at.seq_response(
+                                    seq_num)
+                                response += self.etrx3x_at.ok_response()
+
+                                if(address_table_index == 255):
+                                    # "FF" - local node
+
+                                    # TODO(rubens): forward message to MCU
+                                    # handler
+
+                                    async_response = self.etrx3x_at.\
+                                        ack_response(seq_num)
+
+                                    self.write_async_message(
+                                        async_response,
+                                        delay=0.1)
+                                else:
+                                    # Remote node
+
+                                    # Get remote node id
+                                    addr = self.local_node.get_address_table()
+                                    node_id = addr[address_table_index][1]
+
+                                    if(node_id == "FFFF"):
+                                        response = self.etrx3x_at.\
+                                            error_response("01")
+                                    else:
+                                        seq_num = self.get_seq_number()
+                                        response = self.etrx3x_at.seq_response(
+                                            seq_num)
+                                        response += \
+                                            self.etrx3x_at.ok_response()
+
+                                        node = self.local_zb_network.get_node(
+                                            node_id)
+
+                                        if(node is not None):
+                                            # TODO(rubens): forward message to
+                                            # MCU handler
+                                            # async_response = self.etrx3x_at.\
+                                            #     ucast_notification()
+
+                                            async_response = self.etrx3x_at.\
+                                                ack_response(seq_num)
+
+                                            self.write_async_message(
+                                                async_response,
+                                                delay=0.1)
+                                        else:
+                                            # Remote node not found
+                                            async_response = self.etrx3x_at.\
+                                                nack_response(seq_num)
+
+                                            self.write_async_message(
+                                                async_response,
+                                                delay=self.
+                                                get_local_node_delay())
+
+                            except ValueError:
+                                # 05 - Invalid parameter
+                                response = self.etrx3x_at.error_response("05")
+
+                            except IndexError:
+                                # 01 - could poll parent (default error for
+                                # invalid address trable index)
+                                response = self.etrx3x_at.error_response("01")
 
                         elif(re.match(
                                 "at\+atrems:[0-9a-f]{16},[0-9a-f]{2}?",
@@ -860,7 +1010,16 @@ class ETRX3xSimulator(object):
                         store_data = ""
 
                     else:
-                        store_data += data
+                        # NOTE(rubens): simulate input serial buffer limit of
+                        # ETRX3x R309 module
+                        if(len(store_data) >= self.serial_input_limit):
+                            # 0C = Too many characters
+                            response = self.etrx3x_at.error_response("0C")
+                            self.write_serial(response)
+
+                            store_data = ""
+                        else:
+                            store_data += data
 
                 else:
                     # Clear stored data for invalid char
