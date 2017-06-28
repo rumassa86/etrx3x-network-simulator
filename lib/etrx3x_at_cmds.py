@@ -4061,6 +4061,16 @@ class ETRX3xATCommand:
 
         return ntable_message
 
+    def ucast_notification(self, eui, payload, rssi=None, lqi=None):
+        if(rssi is not None and lqi is not None):
+            notify = "UCAST:{},{:02X}={},{:02X},{:02X}".format(
+                eui, len(payload), payload, rssi, lqi
+            )
+        else:
+            notify = "UCAST:{},{:02X}={}".format(eui, len(payload), payload)
+
+        return notify
+
     def seq_response(self, seq_number):
         return "\r\nSEQ:{:02X}\r\n".format(seq_number)
 
