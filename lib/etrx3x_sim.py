@@ -856,8 +856,11 @@ class ETRX3xSimulator(object):
                             params = store_data.split(":")[1].split(",")
 
                             try:
-                                node_id = int(params[0], 16)
+                                # Validate node_id parameter
+                                node_id = params[0]
                                 payload = ",".join(params[1:])
+
+                                self._validate_node_identifier(node_id)
 
                                 seq_num = self.get_seq_number()
                                 response = self.etrx3x_at.seq_response(
@@ -867,7 +870,6 @@ class ETRX3xSimulator(object):
 
                                 node = self.local_zb_network.get_node(
                                     node_id)
-                                print node
 
                                 if(node is not None):
                                     # TODO(rubens): forward message to
