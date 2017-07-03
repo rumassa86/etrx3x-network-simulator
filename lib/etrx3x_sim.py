@@ -796,8 +796,93 @@ class ETRX3xSimulator(object):
                                 store_data)):
                             # Send UCAST with binary payload for target node
                             # in address table index format
-                            # 05 = invalid_parameter
-                            response = self.etrx3x_at.error_response("05")
+                            params = store_data.split(":")[1].split(",")
+
+                            table_index = params[0]
+                            payload_size_hex = params[1]
+                            try:
+                                address_table_index = int(table_index, 16)
+                                payload_size = int(payload_size_hex, 16)
+
+                                # TODO(rubens): add validation for payload size
+                                # zero
+
+                                self.write_serial(">")
+
+                                payload_binary = ""
+                                while (len(payload_binary) < payload_size):
+                                    input_binary = os.read(self.master, 1)
+                                    payload_binary += input_binary
+
+                                    # TODO(rubens): implement UCAST timeout
+
+                                seq_num = self.get_seq_number()
+                                response = self.etrx3x_at.seq_response(
+                                    seq_num)
+                                response += self.etrx3x_at.ok_response()
+
+                                if(address_table_index == 255):
+                                    # "FF" - local node
+
+                                    # TODO(rubens): forward message to MCU
+                                    # handler
+
+                                    async_response = self.etrx3x_at.\
+                                        ack_response(seq_num)
+
+                                    self.write_async_message(
+                                        async_response,
+                                        delay=0.1)
+                                else:
+                                    # Remote node
+
+                                    # Get remote node id
+                                    addr = self.local_node.get_address_table()
+                                    node_id = addr[address_table_index][1]
+
+                                    if(node_id == "FFFF"):
+                                        response = self.etrx3x_at.\
+                                            error_response("01")
+                                    else:
+                                        seq_num = self.get_seq_number()
+                                        response = self.etrx3x_at.seq_response(
+                                            seq_num)
+                                        response += \
+                                            self.etrx3x_at.ok_response()
+
+                                        node = self.local_zb_network.get_node(
+                                            node_id)
+
+                                        if(node is not None):
+                                            # TODO(rubens): forward message to
+                                            # MCU handler
+                                            # async_response = self.etrx3x_at.\
+                                            #     ucast_notification()
+
+                                            async_response = self.etrx3x_at.\
+                                                ack_response(seq_num)
+
+                                            self.write_async_message(
+                                                async_response,
+                                                delay=0.1)
+                                        else:
+                                            # Remote node not found
+                                            async_response = self.etrx3x_at.\
+                                                nack_response(seq_num)
+
+                                            self.write_async_message(
+                                                async_response,
+                                                delay=self.
+                                                get_local_node_delay())
+
+                            except ValueError:
+                                # 05 - Invalid parameter
+                                response = self.etrx3x_at.error_response("05")
+
+                            except IndexError:
+                                # 01 - could poll parent (default error for
+                                # invalid address trable index)
+                                response = self.etrx3x_at.error_response("01")
 
                         elif(re.match(
                                 "at\+ucast:[0-9a-f]{16},[\0-\xFF]*",
