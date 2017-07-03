@@ -29,10 +29,10 @@ import socket
 import json
 from time import time
 
-from sgcon.lib.sgcon_validators import validate_node_identifier
-from sgcon.lib.sgcon_validators import validate_zigbee_channel_range
-from sgcon.lib.sgcon_validators import check_node_id_format
-from sgcon.lib.sgcon_validators import check_node_eui_format
+from lib.sgcon_validators import validate_node_identifier
+from lib.sgcon_validators import validate_zigbee_channel_range
+from lib.sgcon_validators import check_node_id_format
+from lib.sgcon_validators import check_node_eui_format
 
 
 class ETRX3xATCommandException(Exception):

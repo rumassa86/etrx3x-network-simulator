@@ -9,8 +9,8 @@ import Queue
 import threading
 
 from lib.etrx3x_at_cmds import ETRX3xATCommand
-from sgcon.lib.sgcon_validators import validate_node_identifier
-from sgcon.lib.zigbee import ZigBeeNetwork
+from lib.sgcon_validators import validate_node_identifier
+from lib.zigbee import ZigBeeNetwork
 
 
 class ETRX3xSimulatorException(Exception, object):
