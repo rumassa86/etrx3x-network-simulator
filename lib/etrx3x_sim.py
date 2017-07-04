@@ -777,6 +777,33 @@ class ETRX3xSimulator(object):
                             )
                             response += self.etrx3x_at.ok_response()
 
+                        elif(re.match("at\+panscan[\0-\xFF]*", store_data)):
+                            response = ""
+                            for epanid in self.zb_networks:
+                                zbnet = self.zb_networks[epanid].\
+                                    get_local_pan()
+
+                                pan_channel = zbnet.get_channel()
+                                pan_id = zbnet.get_pan_id()
+                                pan_eid = zbnet.get_epan_id()
+                                pan_zb_stack = zbnet.get_zb_stack()
+
+                                if(zbnet.get_joinable() is True):
+                                    pan_joinable = "01"
+                                else:
+                                    pan_joinable = "00"
+
+                                response += self.etrx3x_at.\
+                                    panscan_notification(
+                                        pan_channel,
+                                        pan_id,
+                                        pan_eid,
+                                        pan_zb_stack,
+                                        pan_joinable
+                                    )
+
+                            response += self.etrx3x_at.ok_response()
+
                         elif(re.match(
                                 "at\+ucastb:[0-9a-f]{2},[0-9a-f]{16}",
                                 store_data)):
