@@ -363,16 +363,6 @@ class ETRX3xSimulator(object):
                             # pan to notify "JPAN" message
                             response = self.etrx3x_at.ok_response()
 
-                        elif(store_data == "at+n"):
-                            response = response = self.etrx3x_at.at_n_response(
-                                self.local_node.get_type(),
-                                self.local_pan.get_channel(),
-                                self.local_pan.get_power(),
-                                self.local_pan.get_pan_id(),
-                                self.local_pan.get_epan_id()
-                            )
-                            response += self.etrx3x_at.ok_response()
-
                         elif(store_data == "at+tokdump"):
                             local_node_sregs = {}
                             for regs in self.local_node.get_sregisters():
@@ -776,6 +766,16 @@ class ETRX3xSimulator(object):
                                 # 01 - could poll parent (default error for
                                 # invalid address trable index)
                                 response = self.etrx3x_at.error_response("01")
+
+                        elif(re.match("at\+n[\0-\xFF]*", store_data)):
+                            response = response = self.etrx3x_at.at_n_response(
+                                self.local_node.get_type(),
+                                self.local_pan.get_channel(),
+                                self.local_pan.get_power(),
+                                self.local_pan.get_pan_id(),
+                                self.local_pan.get_epan_id()
+                            )
+                            response += self.etrx3x_at.ok_response()
 
                         elif(re.match(
                                 "at\+ucastb:[0-9a-f]{2},[0-9a-f]{16}",
