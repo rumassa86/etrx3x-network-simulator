@@ -4043,6 +4043,7 @@ class ETRX3xATCommand:
             "signal": <int_lqi> - from 0 to 255
         }
         """
+        # TODO(rubens): add parameters validation
         ntable_message = "\r\nNTable:{},{}\r\n".format(node_id, error_code)
         ntable_message += "Length:{:02X}\r\n".format(len(neighbour_table))
 
@@ -4061,13 +4062,29 @@ class ETRX3xATCommand:
 
         return ntable_message
 
+    def panscan_notification(
+        self, channel, pan_id, pan_eid, zb_stack, joinable, rssi=None,
+            lqi=None):
+        # TODO(rubens): add parameters validation
+
+        if(rssi is None and lqi is None):
+            notify = "\r\n+PANSCAN:{},{},{},{},{}\r\n".format(
+                channel, pan_id, pan_eid, zb_stack, joinable)
+        else:
+            notify = "\r\n+PANSCAN:{},{},{},{},{},{},{}\r\n".format(
+                channel, pan_id, pan_eid, zb_stack, joinable, rssi, lqi)
+
+        return notify
+
     def ucast_notification(self, eui, payload, rssi=None, lqi=None):
+        # TODO(rubens): add parameters validation
         if(rssi is not None and lqi is not None):
-            notify = "UCAST:{},{:02X}={},{:02X},{:02X}".format(
+            notify = "\r\nUCAST:{},{:02X}={},{:02X},{:02X}\r\n".format(
                 eui, len(payload), payload, rssi, lqi
             )
         else:
-            notify = "UCAST:{},{:02X}={}".format(eui, len(payload), payload)
+            notify = "\r\nUCAST:{},{:02X}={}\r\n".format(
+                eui, len(payload), payload)
 
         return notify
 
