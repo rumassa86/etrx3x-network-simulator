@@ -535,10 +535,12 @@ class ETRX3xSimulator(object):
                             reg = store_data[3:5].upper()
                             new_value = store_data[6:]
                             try:
-                                etrx3x_at.validate_sregister_value(reg, value)
+                                self.etrx3x_at.validate_sregister_value(
+                                    reg, new_value)
 
-                                set_status = self.local_ndoe.set_sregisters(
-                                    reg, value)
+                                set_status = self.local_node.\
+                                    set_sregister_value(
+                                        reg, new_value)
 
                                 if(set_status is not None):
                                     response = self.etrx3x_at.ok_response()
@@ -549,7 +551,7 @@ class ETRX3xSimulator(object):
                             except ValueError:
                                 print(
                                     "invalid SRegister value {} for register "
-                                    "{}".format(value, reg))
+                                    "{}".format(new_value, reg))
                                 # 05 = invalid_parameter
                                 response = self.etrx3x_at.error_response("05")
 
