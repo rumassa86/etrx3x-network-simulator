@@ -4088,6 +4088,18 @@ class ETRX3xATCommand:
 
         return notify
 
+    def sread_notification(
+            self, node_id, node_eui, reg, error_code, value=None):
+
+        if(value is not None):
+            notify = "\r\nSREAD:{},{},{},{}={}\r\n".format(
+                node_id, node_eui, reg, error_code, value)
+        else:
+            notify = "\r\nSREAD:{},{},{},{}\r\n".format(
+                node_id, node_eui, reg, error_code)
+
+        return notify
+
     def seq_response(self, seq_number):
         return "\r\nSEQ:{:02X}\r\n".format(seq_number)
 
