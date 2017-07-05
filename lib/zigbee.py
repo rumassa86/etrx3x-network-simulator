@@ -774,10 +774,12 @@ class ZigBeeNode:
             register: SRegister number (in 2 hexadecimal character).
             value: SRegister value.
         """
-        reg = self.get_sregister(register)
+        register_up = register.upper()
+
+        reg = self.get_sregister(register_up)
         if(reg is None):
             # Add new register
-            reg = [register, value]
+            reg = [register_up, value]
             self.sregisters.append(reg)
         else:
             # Update value
@@ -795,8 +797,9 @@ class ZigBeeNode:
             Tuple with SRegister number and value content.
         """
         reg = None
+        register_up = register.upper()
         for i in self.sregisters:
-            if(i[0] == register):
+            if(i[0] == register_up):
                 reg = i
                 break
         return reg
