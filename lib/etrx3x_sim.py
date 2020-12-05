@@ -308,7 +308,7 @@ class ETRX3xSimulator(object):
                 data = os.read(self.master, 1)
 
                 if(self.echo_enabled is True):
-                    os.write(self.master, data)
+                    self.write_serial(data)
 
                 if(store_data.lower() == b"" and
                         (data == b"a" or data == b"A")):
@@ -340,7 +340,7 @@ class ETRX3xSimulator(object):
                     elif(data == b"\r"):
                         response = self.etrx3x_at.ok_response().encode()
                         print("returning okay: {}".format(response))
-                        os.write(self.master, response)
+                        self.write_serial(response)
                         store_data = b""
                     else:
                         # Clear stored data for invalid char
