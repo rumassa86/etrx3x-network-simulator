@@ -15,7 +15,7 @@ def validate_node_identifier(node_identifier):
     Returns:
         True if it is a valid node identifier otherwise False.
     """
-    if((type(node_identifier) != str) and (type(node_identifier) != unicode)):
+    if(type(node_identifier) != str):
         return False
 
     if(len(node_identifier) == 4):
@@ -45,7 +45,7 @@ def check_node_id_format(node_id):
     """
     node_mask = "^[0-9a-fA-F]{4}"
 
-    if((type(node_id) != str) and (type(node_id) != unicode)):
+    if((type(node_id) != str)):
         return False
 
     if(len(node_id) > 4):
@@ -66,7 +66,7 @@ def check_node_eui_format(node_eui):
     Returns:
         True if it is a valid node id otherwise False.
     """
-    if((type(node_eui) != str) and (type(node_eui) != unicode)):
+    if(type(node_eui) != str):
         return False
 
     if(len(node_eui) > 16):
@@ -88,10 +88,10 @@ def validate_host(host):
     Returns:
         True if it is a valid hostname or IP address otherwise False.
     """
-    ip_addr_mask = "^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]"\
-        "|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
-    hostname_mask = "^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*"\
-        "[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
+    ip_addr_mask = r"^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]"\
+        r"|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
+    hostname_mask = r"^(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9\-]*"\
+        r"[a-zA-Z0-9])\.)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9\-]*[A-Za-z0-9])$"
 
     if (re.search(ip_addr_mask, host) is not None):
         return True
@@ -112,7 +112,7 @@ def validate_port(port):
     """
     try:
         port_int = int(port)
-    except:
+    except ValueError:
         return False
 
     if(port_int >= 0 and port_int < 65535):
@@ -172,10 +172,10 @@ def validate_zigbee_key(key):
         True if it is a valid key otherwise False.
     """
     key_mask = "^[0-9a-fA-F]{32}"
-    if(type(key) == long):
+    if(type(key) == int):
         key = hex(key)[2:].replace("L", "")
 
-    if((type(key) != str) and (type(key) != unicode)):
+    if(type(key) != str):
         return False
 
     if(len(key) == 32):
@@ -227,9 +227,9 @@ def validate_sg_device_version(version):
     Returns:
         True if it is a valid device version or False otherwise.
     """
-    dev_version = "^\d+\.\d+(\.\d+)?$"
+    dev_version = r"^\d+\.\d+(\.\d+)?$"
 
-    if(type(version) != str) and (type(version) != unicode):
+    if(type(version) != str):
         return False
 
     if(re.match(dev_version, version) is not None):
@@ -263,7 +263,7 @@ def validate_sg_device_type(dev_type):
         "UNKNOW"
     ]
 
-    if((type(dev_type) != str) and (type(dev_type) != unicode)):
+    if(type(dev_type) != str):
         return False
 
     if(len(dev_type) > 13):
@@ -291,11 +291,11 @@ def validate_filename(filename):
         True if filename is valid or False if it is not valid.
     """
     # \w = [a-zA-Z0-9_]
-    pattern = "^[\w,\s-]+(\.[A-Za-z]{3,4})?$"
+    pattern = r"^[\w,\s-]+(\.[A-Za-z]{3,4})?$"
 
     result = re.match(pattern, filename)
 
-    if((type(filename) != str) and (type(filename) != unicode)):
+    if(type(filename) != str):
         return False
 
     if(result is None):
@@ -319,7 +319,7 @@ def validate_directory_path(dir_path):
     #   '[', ']', '(', ')', '%', '_'
     # pattern = "[\/.]*(\/*[a-zA-Z0-9_\s-]*)"
 
-    if((type(dir_path) != str) and (type(dir_path) != unicode)):
+    if(type(dir_path) != str):
         return False
 
     result = re.match(pattern, dir_path)
@@ -340,7 +340,7 @@ def parse_json(json_message):
         Dictionary with JSON structure.
     """
     try:
-        if((type(json_message) != str) and (type(json_message) != unicode)):
+        if(type(json_message) != str):
             raise ValueError("json_message must be string")
 
         decoded = json.loads(json_message)
@@ -365,7 +365,7 @@ def convert_to_string(dict_msg):
         json_msg = json.dumps(dict_msg)
 
         return json_msg
-    except:
+    except TypeError:
         # TODO(rubens): create exception for convert dict to json
         return None
 
@@ -383,7 +383,7 @@ def get_host_port(addr_string):
         ValueError for invalid addr_string format, host or IP value or
         TCP port value.
     """
-    if((type(addr_string) != str) and (type(addr_string) != unicode)):
+    if(type(addr_string) != str):
         raise ValueError("addr_string must be string")
 
     try:
