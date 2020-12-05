@@ -2,19 +2,17 @@ from setuptools import setup
 
 setup(
     name='etrx3x_sim',
-    version='0.0.0',
-    description='ETRX3x simulator to test performance of SG Gateway'
-    ' (Concentrador)',
-    url='http://repositorio.smartgreen.net.br/network/etrx3x-network-'
-    'simulator',
+    version='0.0.1',
+    description='Simulator to test Services built on top of ETR3x ZigBee'
+                'Network',
+    url='https://github.com/rumassa86/etrx3x-network-simulator',
     author='Rubens Massayuki Suguimoto',
-    author_email='rubens@smartgreen.com',
+    author_email='rubens.suguimoto@gmail.com',
     license='SG',
     packages=[
         "etrx3x_sim"
     ],
     install_requires=[
-        "sgcon>=1.0.0"
     ],
     package_dir={
         'etrx3x_sim': 'lib'
