@@ -22,12 +22,9 @@
 # NOTE
 # Serial interface requires a '\r' character at the end of command.
 # This class dont put the '\r' in the message, handle it in main program
-
+#
 
 import re
-import socket
-import json
-from time import time
 
 from lib.sgcon_validators import validate_node_identifier
 from lib.sgcon_validators import validate_zigbee_channel_range
@@ -1460,11 +1457,11 @@ class ETRX3xATCommand:
                 raise ETRX3xATCommandException(
                     "write_group_remote_sregister: {}".format(err))
 
-            msg = "ATSALL:{},{}={},{}".format(
+            msg = "ATSALL:{},{}{}={},{}".format(
                 group_id, target_reg, bit_position, data, password)
 
         else:
-            msg = "ATSALL:{},{}={}".format(
+            msg = "ATSALL:{},{}{}={}".format(
                 group_id, target_reg, bit_position, data)
 
         return msg
@@ -3092,12 +3089,12 @@ class ETRX3xATCommand:
                 self.validate_etrx3x_node_identifier(
                     destiny_address, only_node_id=True)
 
-            except ValueError as err:
+            except ValueError:
                 raise ETRX3xATCommandException(
                     "set_binding_on_remote_node: invalid destiny MulticastId"
                     " value for bind type {}".format(bind_type))
 
-            except TypeError as err:
+            except TypeError:
                 raise ETRX3xATCommandException(
                     "set_binding_on_remote_node: invalid destiny MulticastId"
                     " data type for bind type {}".format(bind_type))
@@ -3115,12 +3112,12 @@ class ETRX3xATCommand:
                 self.validate_etrx3x_node_identifier(
                     destiny_address, only_eui=True)
 
-            except ValueError as err:
+            except ValueError:
                 raise ETRX3xATCommandException(
                     "set_binding_on_remote_node: invalid destiny EUI64"
                     " address value for bind type {}".format(bind_type))
 
-            except TypeError as err:
+            except TypeError:
                 raise ETRX3xATCommandException(
                     "set_binding_on_remote_node: invalid destiny EUI64"
                     " address data type for bind type {}".format(bind_type))
@@ -3129,12 +3126,12 @@ class ETRX3xATCommand:
                 try:
                     self.validate_endpoint_number(destiny_endpoint)
 
-                except ValueError as err:
+                except ValueError:
                     raise ETRX3xATCommandException(
                         "set_binding_on_remote_node: destiny endpoint value"
                         " for bind type {}".format(bind_type))
 
-                except TypeError as err:
+                except TypeError:
                     raise ETRX3xATCommandException(
                         "set_binding_on_remote_node: destiny endpoint data"
                         " type for bind type {}".format(bind_type))
@@ -3213,13 +3210,13 @@ class ETRX3xATCommand:
                 self.validate_etrx3x_node_identifier(
                     destiny_address, only_node_id=True)
 
-            except ValueError as err:
+            except ValueError:
                 raise ETRX3xATCommandException(
                     "remove_binding_on_remote_node: invalid destiny"
                     " MulticastId value for bind type {}".format(
                         bind_type))
 
-            except TypeError as err:
+            except TypeError:
                 raise ETRX3xATCommandException(
                     "remove_binding_on_remote_node: invalid destiny"
                     " MulticastId data type for bind type {}".format(
@@ -3238,12 +3235,12 @@ class ETRX3xATCommand:
                 self.validate_etrx3x_node_identifier(
                     destiny_address, only_eui=True)
 
-            except ValueError as err:
+            except ValueError:
                 raise ETRX3xATCommandException(
                     "remove_binding_on_remote_node: invalid destiny EUI64"
                     " address value for bind type {}".format(bind_type))
 
-            except TypeError as err:
+            except TypeError:
                 raise ETRX3xATCommandException(
                     "remove_binding_on_remote_node: invalid destiny EUI64"
                     " address data type for bind type {}".format(bind_type))
@@ -3252,12 +3249,12 @@ class ETRX3xATCommand:
                 try:
                     self.validate_endpoint_number(destiny_endpoint)
 
-                except ValueError as err:
+                except ValueError:
                     raise ETRX3xATCommandException(
                         "remove_binding_on_remote_node: destiny endpoint value"
                         " for bind type {}".format(bind_type))
 
-                except TypeError as err:
+                except TypeError:
                     raise ETRX3xATCommandException(
                         "remove_binding_on_remote_node: destiny endpoint data"
                         " type for bind type {}".format(bind_type))
