@@ -761,7 +761,7 @@ class ZigBeeNode:
             Entry found or None if entry index is out of range.
         """
         try:
-            entry = self.atable[index]
+            return self.atable[index]
         except IndexError:
             return None
 
