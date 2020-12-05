@@ -300,8 +300,8 @@ class ETRX3xSimulator(object):
         self.write_thread.setDaemon(True)
         self.write_thread.start()
 
-        store_data = ""
-        command_list = []
+        store_data = b""
+        # command_list = []
 
         while self.main_loop is True:
             try:
@@ -310,44 +310,46 @@ class ETRX3xSimulator(object):
                 if(self.echo_enabled is True):
                     os.write(self.master, data)
 
-                if(store_data.lower() == "" and (data == "a" or data == "A")):
+                if(store_data.lower() == b"" and
+                        (data == b"a" or data == b"A")):
                     store_data = data
 
-                elif((store_data.lower() == "a") or
-                        (store_data.lower() == "A")):
-                    if((data == "t") or (data == "T")):
+                elif((store_data.lower() == b"a") or
+                        (store_data.lower() == b"A")):
+                    if((data == b"t") or (data == b"T")):
                         store_data += data
                     else:
                         # Clear stored data for invalid char
-                        store_data = ""
+                        store_data = b""
 
-                elif(store_data.lower() == "at"):
-                    if(data == "+"):
+                elif(store_data.lower() == b"at"):
+                    if(data == b"+"):
                         store_data += data
-                    elif((data == "i") or (data == "I")):
+                    elif((data == b"i") or (data == b"I")):
                         store_data += data
-                    elif((data == "n") or (data == "N")):
+                    elif((data == b"n") or (data == b"N")):
                         store_data += data
-                    elif((data == "s") or (data == "S")):
+                    elif((data == b"s") or (data == b"S")):
                         store_data += data
-                    elif((data == "r") or (data == "R")):
+                    elif((data == b"r") or (data == b"R")):
                         store_data += data
-                    elif((data == "z") or (data == "Z")):
+                    elif((data == b"z") or (data == b"Z")):
                         store_data += data
                     # elif(data == "b"):
                     #     store_data += data
-                    elif(data == "\r"):
-                        response = self.etrx3x_at.ok_response()
+                    elif(data == b"\r"):
+                        response = self.etrx3x_at.ok_response().encode()
+                        print("returning okay: {}".format(response))
                         os.write(self.master, response)
-                        store_data = ""
+                        store_data = b""
                     else:
                         # Clear stored data for invalid char
-                        store_data = ""
+                        store_data = b""
 
                 elif(len(store_data) >= 3):
-                    if(data == "\r"):
+                    if(data == b"\r"):
                         print(store_data)
-                        store_data_low = store_data.lower()
+                        store_data_low = store_data.lower().decode()
 
                         if(store_data_low == "ati"):
                             response = self.etrx3x_at.ati_response(
@@ -375,7 +377,7 @@ class ETRX3xSimulator(object):
 
                             store_data = ""
 
-                        elif(re.match("at\+atable", store_data_low)):
+                        elif(re.match(r"at\+atable", store_data_low)):
                             # Get local pre-configured address table
                             local_atable = []
                             for addr in self.local_node.get_address_table():
@@ -394,11 +396,11 @@ class ETRX3xSimulator(object):
                             response = self.etrx3x_at.at_atable_response(
                                 local_atable)
 
-                        elif(re.match("ats[0-9a-f]{4}\?", store_data_low)):
+                        elif(re.match(r"ats[0-9a-f]{4}\?", store_data_low)):
                             # atsXXPP = get local XX sregister with P bit
                             # position value for 32 bits sregisters
-                            reg = store_data[3:5].upper()
-                            bit_pos = store_data[5:7].upper()
+                            reg = store_data_low[3:5].upper()
+                            bit_pos = store_data_low[5:7].upper()
                             try:
                                 reg_prop = \
                                     self.etrx3x_at.\
@@ -459,11 +461,11 @@ class ETRX3xSimulator(object):
                                 # 05 = invalid_parameter
                                 response = self.etrx3x_at.error_response("05")
 
-                        elif(re.match("ats[0-9a-f]{3}\?", store_data_low)):
+                        elif(re.match(r"ats[0-9a-f]{3}\?", store_data_low)):
                             # atsXXP = get local XX sregister with P bit
                             # position value
-                            reg = store_data[3:5].upper()
-                            bit_pos = store_data[5].upper()
+                            reg = store_data_low[3:5].upper()
+                            bit_pos = store_data_low[5].upper()
 
                             try:
                                 reg_prop = self.etrx3x_at.\
@@ -505,9 +507,9 @@ class ETRX3xSimulator(object):
                                 # 05 = invalid_parameter
                                 response = self.etrx3x_at.error_response("05")
 
-                        elif(re.match("ats[0-9a-f]{2}\?", store_data_low)):
+                        elif(re.match(r"ats[0-9a-f]{2}\?", store_data_low)):
                             # atsXX = get local s register
-                            reg = store_data[3:5].upper()
+                            reg = store_data_low[3:5].upper()
                             value = self.local_node.get_sregister_value(reg)
 
                             if(value is not None):
@@ -522,7 +524,7 @@ class ETRX3xSimulator(object):
                                 response = self.etrx3x_at.error_response("05")
 
                         elif(re.match(
-                                "ats[0-9a-f]{2}=[0-9a-z]*", store_data_low)):
+                                r"ats[0-9a-f]{2}=[0-9a-z]*", store_data_low)):
                             # atsXX=V* = set local s register
                             reg = store_data[3:5].upper()
                             new_value = store_data[6:]
@@ -558,10 +560,10 @@ class ETRX3xSimulator(object):
 
                         # REMOTE COMMANDS - SHOULD INCLUDE SEQ-ACK
                         elif(re.match(
-                                "at\+ntable:[0-9a-f]{2},[0-9a-f]{16}",
+                                r"at\+ntable:[0-9a-f]{2},[0-9a-f]{16}",
                                 store_data_low)):
                             # NTABLE from address in node eui format (16 hexa)
-                            params = store_data.split(":")[1].split(",")
+                            params = store_data_low.split(":")[1].split(",")
                             try:
                                 index = int(params[0], 16)
 
@@ -618,10 +620,10 @@ class ETRX3xSimulator(object):
                                 response = self.etrx3x_at.error_response("05")
 
                         elif(re.match(
-                                "at\+ntable:[0-9a-f]{2},[0-9a-f]{4}",
+                                r"at\+ntable:[0-9a-f]{2},[0-9a-f]{4}",
                                 store_data_low)):
                             # NTABLE from address in node id format (4 hexa)
-                            params = store_data.split(":")[1].split(",")
+                            params = store_data_low.split(":")[1].split(",")
                             try:
                                 index = int(params[0], 16)
 
@@ -673,11 +675,11 @@ class ETRX3xSimulator(object):
                                 response = self.etrx3x_at.error_response("05")
 
                         elif(re.match(
-                                "at\+ntable:[0-9a-f]{2},[0-9a-f]{2}",
+                                r"at\+ntable:[0-9a-f]{2},[0-9a-f]{2}",
                                 store_data_low)):
                             # NTABLE from address in ATABLE index format,
                             # or FF/ff to local node
-                            params = store_data.split(":")[1].split(",")
+                            params = store_data_low.split(":")[1].split(",")
                             try:
                                 index = int(params[0], 16)
 
@@ -769,7 +771,7 @@ class ETRX3xSimulator(object):
                                 # invalid address trable index)
                                 response = self.etrx3x_at.error_response("01")
 
-                        elif(re.match("at\+n[\0-\xFF]*", store_data_low)):
+                        elif(re.match(r"at\+n[\0-\xFF]*", store_data_low)):
                             response = response = self.etrx3x_at.at_n_response(
                                 self.local_node.get_type(),
                                 self.local_pan.get_channel(),
@@ -780,7 +782,7 @@ class ETRX3xSimulator(object):
                             response += self.etrx3x_at.ok_response()
 
                         elif(re.match(
-                                "at\+panscan[\0-\xFF]*", store_data_low)):
+                                r"at\+panscan[\0-\xFF]*", store_data_low)):
                             response = ""
                             for epanid in self.zb_networks:
                                 zbnet = self.zb_networks[epanid].\
@@ -808,7 +810,7 @@ class ETRX3xSimulator(object):
                             response += self.etrx3x_at.ok_response()
 
                         elif(re.match(
-                                "at\+ucastb:[0-9a-f]{2},[0-9a-f]{16}",
+                                r"at\+ucastb:[0-9a-f]{2},[0-9a-f]{16}",
                                 store_data_low)):
                             # Send UCAST with binary payloa for target node
                             # eui address format
@@ -816,7 +818,7 @@ class ETRX3xSimulator(object):
                             response = self.etrx3x_at.error_response("05")
 
                         elif(re.match(
-                                "at\+ucastb:[0-9a-f]{2},[0-9a-f]{4}",
+                                r"at\+ucastb:[0-9a-f]{2},[0-9a-f]{4}",
                                 store_data_low)):
                             # Send UCAST with binary payload for target node
                             # id address format
@@ -824,11 +826,11 @@ class ETRX3xSimulator(object):
                             response = self.etrx3x_at.error_response("05")
 
                         elif(re.match(
-                                "at\+ucastb:[0-9a-f]{2},[0-9a-f]{2}",
+                                r"at\+ucastb:[0-9a-f]{2},[0-9a-f]{2}",
                                 store_data_low)):
                             # Send UCAST with binary payload for target node
                             # in address table index format
-                            params = store_data.split(":")[1].split(",")
+                            params = store_data_low.split(":")[1].split(",")
 
                             table_index = params[0]
                             payload_size_hex = params[1]
@@ -917,14 +919,14 @@ class ETRX3xSimulator(object):
                                 response = self.etrx3x_at.error_response("01")
 
                         elif(re.match(
-                                "at\+ucast:[0-9a-f]{16},[\0-\xFF]*",
+                                r"at\+ucast:[0-9a-f]{16},[\0-\xFF]*",
                                 store_data_low)):
                             # Send UCAST for target node eui address format
                             # Send UCAST for target node id address format
-                            params = store_data.split(":")[1].split(",")
+                            params = store_data_low.split(":")[1].split(",")
 
                             node_eui = params[0]
-                            payload = ",".join(params[1:])
+                            # payload = ",".join(params[1:])
                             try:
                                 self._validate_node_identifier(node_eui)
 
@@ -967,15 +969,15 @@ class ETRX3xSimulator(object):
                                 response = self.etrx3x_at.error_response("05")
 
                         elif(re.match(
-                                "at\+ucast:[0-9a-f]{4},[\0-\xFF]*",
+                                r"at\+ucast:[0-9a-f]{4},[\0-\xFF]*",
                                 store_data_low)):
                             # Send UCAST for target node id address format
-                            params = store_data.split(":")[1].split(",")
+                            params = store_data_low.split(":")[1].split(",")
 
                             try:
                                 # Validate node_id parameter
                                 node_id = params[0]
-                                payload = ",".join(params[1:])
+                                # payload = ",".join(params[1:])
 
                                 self._validate_node_identifier(node_id)
 
@@ -1015,13 +1017,13 @@ class ETRX3xSimulator(object):
                                 response = self.etrx3x_at.error_response("05")
 
                         elif(re.match(
-                                "at\+ucast:[0-9a-f]{2},[\0-\xFF]*",
+                                r"at\+ucast:[0-9a-f]{2},[\0-\xFF]*",
                                 store_data_low)):
                             # Send UCAST for target node in address table index
                             # format
-                            params = store_data.split(":")[1].split(",")
+                            params = store_data_low.split(":")[1].split(",")
                             table_index = params[0]
-                            payload = ",".join(params[1:])
+                            # payload = ",".join(params[1:])
 
                             try:
                                 address_table_index = int(table_index, 16)
@@ -1095,11 +1097,11 @@ class ETRX3xSimulator(object):
                                 response = self.etrx3x_at.error_response("01")
 
                         elif(re.match(
-                                "atrems:[0-9a-f]{2,16},[0-9a-f]{2,4}\?",
+                                r"atrems:[0-9a-f]{2,16},[0-9a-f]{2,4}\?",
                                 store_data_low)):
                             # Get remote SRegister from node with address in
                             # address index format format (2 hexa)
-                            params = store_data.split(":")[1].split(",")
+                            params = store_data_low.split(":")[1].split(",")
                             node_addr = params[0]
                             reg = ",".join(params[1:])[0:-1]
 
@@ -1284,10 +1286,10 @@ class ETRX3xSimulator(object):
                             response = self.etrx3x_at.error_response("02")
 
                         # Send response to serial port
-                        self.write_serial(response)
+                        self.write_serial(response.encode())
 
                         # Clear stored data command
-                        store_data = ""
+                        store_data = b""
 
                     else:
                         # NOTE(rubens): simulate input serial buffer limit of
@@ -1295,15 +1297,15 @@ class ETRX3xSimulator(object):
                         if(len(store_data) >= self.serial_input_limit):
                             # 0C = Too many characters
                             response = self.etrx3x_at.error_response("0C")
-                            self.write_serial(response)
+                            self.write_serial(response.encode())
 
-                            store_data = ""
+                            store_data = b""
                         else:
                             store_data += data
 
                 else:
                     # Clear stored data for invalid char
-                    store_data = ""
+                    store_data = b""
 
             except KeyboardInterrupt:
                 self.stop()
@@ -1479,10 +1481,10 @@ def main():
         "4F": "1770"
     }
 
-    etrx3x_configs = {
-        "coo": default_coo_etrx3x_sregs,
-        "router": default_router_etrx3x_sregs
-    }
+    # etrx3x_configs = {
+    #     "coo": default_coo_etrx3x_sregs,
+    #     "router": default_router_etrx3x_sregs
+    # }
 
     coo_zbnode = {
         "id": "0000",
