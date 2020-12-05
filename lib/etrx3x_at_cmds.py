@@ -196,7 +196,7 @@ class ETRX3xATCommand:
             TypeError: password data type diferente from string.
             ValueError: password content format is not alpha-numeric.
         """
-        if(isinstance(node_id, basestring) is False):
+        if(isinstance(node_id, str) is False):
             raise TypeError("invalid node_id type: {}".format(type(node_id)))
 
         if((only_node_id is False) and (only_eui is False) and
@@ -240,7 +240,7 @@ class ETRX3xATCommand:
             TypeError: password data type diferente from string.
             ValueError: password content format is not alpha-numeric.
         """
-        if(isinstance(password, basestring) is False):
+        if(isinstance(password, str) is False):
             raise TypeError("invalid password type: {}".format(
                 type(password)))
 
@@ -257,7 +257,7 @@ class ETRX3xATCommand:
             TypeError: invalid sregister data type. Must be string type.
             ValueError: sregister number is out of ETRX308 list range.
         """
-        if(isinstance(sregister, basestring) is False):
+        if(isinstance(sregister, str) is False):
             raise TypeError("invalid sregister type: {}".format(
                 type(sregister)))
 
@@ -323,7 +323,7 @@ class ETRX3xATCommand:
         except ValueError as err:
             raise err
 
-        if(isinstance(value, basestring) is False):
+        if(isinstance(value, str) is False):
             raise TypeError(
                 "validate_sregister_value: invalid value type: {}".format(
                     type(value)))
@@ -396,7 +396,7 @@ class ETRX3xATCommand:
                 if "max_value" in sreg_rules:
                     max_value = sreg_rules["max_value"]
 
-            if((value < min_value) and (value > max_value)):
+            if((int(value) < min_value) and (int(value) > max_value)):
                 raise ValueError(
                     "validate_sregister_value: invalid sregister"
                     " {!r} value {!r}".format(sreg, value))
@@ -515,7 +515,7 @@ class ETRX3xATCommand:
             "4XXX"
         ]
 
-        if(isinstance(value, basestring) is False):
+        if(isinstance(value, str) is False):
             raise TypeError("invalid builtin value type: {}".format(
                 type(value)))
 
@@ -569,7 +569,7 @@ class ETRX3xATCommand:
             TypeError: invalid bit position data type.
             ValueError: invalid bit position value.
         """
-        if(isinstance(bit_position, basestring) is False):
+        if(isinstance(bit_position, str) is False):
             raise TypeError("invalid bit_position type: {}".format(
                 bit_position))
 
@@ -595,7 +595,7 @@ class ETRX3xATCommand:
             TypeError: invalid bit position data type.
             ValueError: invalid bit position value.
         """
-        if(isinstance(update_id, basestring) is False):
+        if(isinstance(update_id, str) is False):
             raise TypeError("invalid update_id type: {}".format(
                 update_id))
 
@@ -622,7 +622,7 @@ class ETRX3xATCommand:
         """
         valid_group_id_values = ["FFFC", "FFFD", "FFFF"]
 
-        if(isinstance(group_id, basestring) is False):
+        if(isinstance(group_id, str) is False):
             raise TypeError("invalid group_id type: {}".format(
                 group_id))
 
@@ -658,7 +658,7 @@ class ETRX3xATCommand:
             TypeError: invalid ZigBee PAN identifier data type.
             ValueError: invalid ZigBee PAN identifier value.
         """
-        if(isinstance(pan_id, basestring) is False):
+        if(isinstance(pan_id, str) is False):
             raise TypeError("invalid pan_id type: {}".format(
                 pan_id))
 
@@ -691,7 +691,7 @@ class ETRX3xATCommand:
             TypeError: invalid ZigBee endpoint number data type.
             ValueError: invalid ZigBee endpoint number value.
         """
-        if(isinstance(endpoint, basestring) is False):
+        if(isinstance(endpoint, str) is False):
             raise TypeError("invalid endpoint number type: {}".format(
                 endpoint))
 
@@ -858,7 +858,7 @@ class ETRX3xATCommand:
             TypeError: invalid ZigBee multicast identifier data type.
             ValueError: invalid ZigBee multicast identifier value.
         """
-        if(isinstance(message, basestring) is False):
+        if(isinstance(message, str) is False):
             raise TypeError("invalid message payload type: {}".format(
                 message))
 

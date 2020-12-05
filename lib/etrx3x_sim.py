@@ -5,7 +5,7 @@ import os
 import pty
 import re
 import time
-import Queue
+import queue
 import threading
 
 from lib.etrx3x_at_cmds import ETRX3xATCommand
@@ -102,7 +102,7 @@ class ETRX3xSimulator(object):
         # AT data
         self.seq_counter = 0
 
-        self.write_queue = Queue.Queue()
+        self.write_queue = queue.Queue()
         self.write_thread = None
 
         # AT input character buffer limit
@@ -264,7 +264,7 @@ class ETRX3xSimulator(object):
                 message = self.write_queue.get(True, 1)
 
                 os.write(self.master, message)
-            except Queue.Empty:
+            except queue.Empty:
                 pass
 
     def write_serial(self, message):
@@ -346,7 +346,7 @@ class ETRX3xSimulator(object):
 
                 elif(len(store_data) >= 3):
                     if(data == "\r"):
-                        print store_data
+                        print(store_data)
                         store_data_low = store_data.lower()
 
                         if(store_data_low == "ati"):
@@ -455,7 +455,7 @@ class ETRX3xSimulator(object):
                                     response += self.etrx3x_at.ok_response()
 
                             except KeyError as err:
-                                print "keyerror: {} - {}".format(reg, err)
+                                print("keyerror: {} - {}".format(reg, err))
                                 # 05 = invalid_parameter
                                 response = self.etrx3x_at.error_response("05")
 
@@ -501,7 +501,7 @@ class ETRX3xSimulator(object):
                                     response += self.etrx3x_at.ok_response()
 
                             except KeyError as err:
-                                print "keyerror: {} - {}".format(reg, err)
+                                print("keyerror: {} - {}".format(reg, err))
                                 # 05 = invalid_parameter
                                 response = self.etrx3x_at.error_response("05")
 
@@ -1237,7 +1237,7 @@ class ETRX3xSimulator(object):
                                             get_sregister_value(
                                                 reg)
 
-                                        print node_id, node_eui, reg, value
+                                        print(node_id, node_eui, reg, value)
 
                                         if(value is not None):
                                             error_code = "00"

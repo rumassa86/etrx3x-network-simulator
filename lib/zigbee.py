@@ -445,7 +445,7 @@ class ZigBeeRouteControl:
                         self.min_hops = route.get_hops()
             else:
                 self.add_lock.release()
-                print "ERROR: maximum amount of routes reached."
+                print("ERROR: maximum amount of routes reached.")
         else:
             # Update route
             route.set_last_update()
