@@ -17,6 +17,11 @@ setup(
     package_dir={
         'etrx3x_sim': 'lib'
     },
+    entry_points={
+        'console_scripts': [
+            'etrx3x_sim=lib.etrx3x_sim:main',
+        ]
+    },
     platforms='any',
     include_package_data=True,
     zip_safe=False
