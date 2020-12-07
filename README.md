@@ -4,9 +4,17 @@ Telegesis ETRX3x Network Simulator for test programs and services build on top o
 
 These project can be used to simulate a ZigBee Network created by ETRX3x modules that can be accessed by AT Commands defined in [TG-ETRXn-Commands](https://www.silabs.com/documents/public/reference-manuals/TG-ETRXn-Commands.pdf).
 
-You can set the network topology defining the nodes, node's links, node's etrx3x configurations, 
+You can set the network topology defining the nodes, node's links, node's etrx3x configurations,
+
+# Dependencies
+
+* Python3 (3.5+)
 
 # Running
+
+The ETRX3x simulator request a terminal serial from the system and return a pair of serial ports (Slave and Master). For external communication you can use a serial program to connection into it.
+
+## Running Simulator
 
 To run the simulator:
 
@@ -25,16 +33,20 @@ Starting write thread queue
 
 Currently, the network contains a hard coded network structure with two nodes (ED00010000000000 - COO and ED00010000000001 - FFD).
 
-To get help of simulator:
+## Running Serial terminal
+
+You can use any Serial program to connect into it such as Picocom, Minicom, Miniterm, etc.
+
+To connect it to the Simulator slave port (in this tutorial is _/dev/pts/2_) using Picocom, do:
 
 ```
-$ python -m lib.etrx3x_sim -h
+$ picocom /dev/pts/2
 ```
 
-# TODO
+# _TODO_ List
 
-* read the input network topology and nodes ETRX3x configuration as JSON file;
-* Implement ATREMS for write SRegisters;
-* Implement MCU behaviors to send data to local module (to test performance of hugh amount of incoming messages);
-* Add code documentation based on Sphinx;
-* Add automated tests (unit, integrated);
+- [ ] Read the input network topology and ETRX3x nodes configuration;
+- [ ] Add ATREMS for write SRegisters;
+- [ ] Add firmware (MCU behaviors for send data to local module to test performance of incoming messages
+- [ ] Add code documentation based on Sphinx
+- [ ] Add automated tests
