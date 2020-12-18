@@ -599,7 +599,7 @@ class ETRX3xSimulator(object):
                                         ack_response(seq_num)
 
                                     self.write_async_message(
-                                        async_response,
+                                        async_response.encode(),
                                         delay=0.1)
                                 else:
                                     # Remote
@@ -613,7 +613,7 @@ class ETRX3xSimulator(object):
                                         nack_response(seq_num)
 
                                     self.write_async_message(
-                                        async_response,
+                                        async_response.encode(),
                                         delay=self.get_local_node_delay())
 
                             except ValueError:
@@ -654,7 +654,7 @@ class ETRX3xSimulator(object):
                                         ack_response(seq_num)
 
                                     self.write_async_message(
-                                        async_response,
+                                        async_response.encode(),
                                         delay=0.1)
                                 else:
                                     # Remote
@@ -668,7 +668,7 @@ class ETRX3xSimulator(object):
                                         nack_response(seq_num)
 
                                     self.write_async_message(
-                                        async_response,
+                                        async_response.encode(),
                                         delay=self.get_local_node_delay())
 
                             except ValueError:
@@ -710,7 +710,7 @@ class ETRX3xSimulator(object):
                                         ack_response(seq_num)
 
                                     self.write_async_message(
-                                        async_response,
+                                        async_response.encode(),
                                         delay=0.1)
                                 else:
                                     # Remote node
@@ -745,7 +745,7 @@ class ETRX3xSimulator(object):
                                                 ack_response(seq_num)
 
                                             self.write_async_message(
-                                                async_response,
+                                                async_response.encode(),
                                                 delay=0.1)
                                         else:
                                             # Remote
@@ -759,7 +759,7 @@ class ETRX3xSimulator(object):
                                                 nack_response(seq_num)
 
                                             self.write_async_message(
-                                                async_response,
+                                                async_response.encode(),
                                                 delay=self.
                                                 get_local_node_delay())
 
@@ -866,7 +866,7 @@ class ETRX3xSimulator(object):
                                         ack_response(seq_num)
 
                                     self.write_async_message(
-                                        async_response,
+                                        async_response.encode(),
                                         delay=0.1)
                                 else:
                                     # Remote node
@@ -898,7 +898,7 @@ class ETRX3xSimulator(object):
                                                 ack_response(seq_num)
 
                                             self.write_async_message(
-                                                async_response,
+                                                async_response.encode(),
                                                 delay=0.1)
                                         else:
                                             # Remote node not found
@@ -906,7 +906,7 @@ class ETRX3xSimulator(object):
                                                 nack_response(seq_num)
 
                                             self.write_async_message(
-                                                async_response,
+                                                async_response.encode(),
                                                 delay=self.
                                                 get_local_node_delay())
 
@@ -953,7 +953,7 @@ class ETRX3xSimulator(object):
                                         ack_response(seq_num)
 
                                     self.write_async_message(
-                                        async_response,
+                                        async_response.encode(),
                                         delay=0.1)
                                 else:
                                     # Remote
@@ -961,7 +961,7 @@ class ETRX3xSimulator(object):
                                         nack_response(seq_num)
 
                                     self.write_async_message(
-                                        async_response,
+                                        async_response.encode(),
                                         delay=self.
                                         get_local_node_delay())
 
@@ -1001,7 +1001,7 @@ class ETRX3xSimulator(object):
                                         ack_response(seq_num)
 
                                     self.write_async_message(
-                                        async_response,
+                                        async_response.encode(),
                                         delay=0.1)
                                 else:
                                     # Remote
@@ -1009,7 +1009,7 @@ class ETRX3xSimulator(object):
                                         nack_response(seq_num)
 
                                     self.write_async_message(
-                                        async_response,
+                                        async_response.encode(),
                                         delay=self.
                                         get_local_node_delay())
 
@@ -1076,7 +1076,7 @@ class ETRX3xSimulator(object):
                                                 ack_response(seq_num)
 
                                             self.write_async_message(
-                                                async_response,
+                                                async_response.encode(),
                                                 delay=0.1)
                                         else:
                                             # Remote node not found
@@ -1084,7 +1084,7 @@ class ETRX3xSimulator(object):
                                                 nack_response(seq_num)
 
                                             self.write_async_message(
-                                                async_response,
+                                                async_response.encode(),
                                                 delay=self.
                                                 get_local_node_delay())
 
@@ -1167,7 +1167,7 @@ class ETRX3xSimulator(object):
                                                         value=value)
 
                                                 self.write_async_message(
-                                                    async_response,
+                                                    async_response.encode(),
                                                     delay=0.1)
                                             else:
                                                 # Remote node not found
@@ -1176,7 +1176,7 @@ class ETRX3xSimulator(object):
                                                     nack_response(seq_num)
 
                                                 self.write_async_message(
-                                                    async_response,
+                                                    async_response.encode(),
                                                     delay=self.
                                                     get_local_node_delay())
 
@@ -1210,7 +1210,7 @@ class ETRX3xSimulator(object):
                                                 value=value)
 
                                         self.write_async_message(
-                                            async_response,
+                                            async_response.encode(),
                                             delay=0.1)
                                     else:
                                         # Remote node not found
@@ -1219,7 +1219,7 @@ class ETRX3xSimulator(object):
                                             nack_response(seq_num)
 
                                         self.write_async_message(
-                                            async_response,
+                                            async_response.encode(),
                                             delay=self.
                                             get_local_node_delay())
 
@@ -1255,7 +1255,7 @@ class ETRX3xSimulator(object):
                                                 value=value)
 
                                         self.write_async_message(
-                                            async_response,
+                                            async_response.encode(),
                                             delay=0.1)
                                     else:
                                         # Remote node not found
@@ -1264,7 +1264,7 @@ class ETRX3xSimulator(object):
                                             nack_response(seq_num)
 
                                         self.write_async_message(
-                                            async_response,
+                                            async_response.encode(),
                                             delay=self.
                                             get_local_node_delay())
 
