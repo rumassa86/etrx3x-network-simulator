@@ -26,10 +26,10 @@
 
 import re
 
-from lib.sgcon_validators import validate_node_identifier
-from lib.sgcon_validators import validate_zigbee_channel_range
-from lib.sgcon_validators import check_node_id_format
-from lib.sgcon_validators import check_node_eui_format
+from etrx3x_sim.sgcon_validators import validate_node_identifier
+from etrx3x_sim.sgcon_validators import validate_zigbee_channel_range
+from etrx3x_sim.sgcon_validators import check_node_id_format
+from etrx3x_sim.sgcon_validators import check_node_eui_format
 
 
 class ETRX3xATCommandException(Exception):

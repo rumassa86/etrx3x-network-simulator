@@ -15,11 +15,11 @@ setup(
     install_requires=[
     ],
     package_dir={
-        'etrx3x_sim': 'lib'
+        'etrx3x_sim': 'etrx3x_sim'
     },
     entry_points={
         'console_scripts': [
-            'etrx3x_sim=lib.etrx3x_sim:main',
+            'etrx3x_sim=etrx3x_sim.etrx3x_sim:main',
         ]
     },
     platforms='any',

@@ -8,10 +8,11 @@ import time
 import queue
 import threading
 
-from lib.etrx3x_at_cmds import ETRX3xATCommand
-from lib.sgcon_validators import validate_node_identifier
-from lib.zigbee import ZigBeeNetwork
-from lib.etrx3x_baseconfig import default_router, default_coo
+from etrx3x_sim.etrx3x_at_cmds import ETRX3xATCommand
+from etrx3x_sim.sgcon_validators import validate_node_identifier
+from etrx3x_sim.zigbee import ZigBeeNetwork
+from etrx3x_sim.etrx3x_baseconfig import default_router, default_coo
+
 
 class ETRX3xSimulatorException(Exception, object):
     """docstring for ETRX3xSimulatorException."""
