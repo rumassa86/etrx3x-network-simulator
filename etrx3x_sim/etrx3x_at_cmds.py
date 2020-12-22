@@ -4097,6 +4097,13 @@ class ETRX3xATCommand:
 
         return notify
 
+    def swrite_notification(self, node_id, node_eui, error_code):
+        # SWRITE:<NWK addr>,<EUI64>,<errorcode>
+        notify = "\r\nSWRITE:{},{},{}\r\n".format(
+            node_id, node_eui, error_code)
+
+        return notify
+
     def seq_response(self, seq_number):
         return "\r\nSEQ:{:02X}\r\n".format(seq_number)
 
