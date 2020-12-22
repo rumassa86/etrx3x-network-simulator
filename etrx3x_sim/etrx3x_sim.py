@@ -1098,13 +1098,32 @@ class ETRX3xSimulator(object):
                                 response = self.etrx3x_at.error_response("01")
 
                         elif(re.match(
-                                r"atrems:[0-9a-f]{2,16},[0-9a-f]{2,4}\?",
+                                r"atrems:[0-9a-f]{2,16},[0-9a-f]{2,4}(\?|=[0-9a-z]*)(,password)?",
                                 store_data_low)):
-                            # Get remote SRegister from node with address in
+                            # Get/Set remote SRegister from node with address in
                             # address index format format (2 hexa)
                             params = store_data_low.split(":")[1].split(",")
-                            node_addr = params[0]
-                            reg = ",".join(params[1:])[0:-1]
+
+                            if(len(params) == 2):
+                                node_addr = params[0]
+                                reg = params[1]
+                                password = None
+
+                            else:  # (len(params) == 3):
+                                node_addr = params[0]
+                                reg = params[1]
+                                password = params[2]
+
+                            # set ATREMS operation mode
+                            if "?" in reg:
+                                read = True
+                                reg = reg[0:2]
+                                set_reg_value = None
+                            else:
+                                read = False
+                                reg_params = reg.split("=")
+                                reg = reg_params[0]
+                                set_reg_value = "=".join(reg_params[1:])
 
                             # Set default success response
                             seq_num = self.get_seq_number()
@@ -1150,21 +1169,39 @@ class ETRX3xSimulator(object):
 
                                                 node_id = node.get_node_id()
                                                 node_eui = node.get_node_eui()
-                                                value = node.\
-                                                    get_sregister_value(
-                                                        reg)
 
-                                                if(value is not None):
-                                                    error_code = "00"
+                                                if read is True:
+                                                    value = node.\
+                                                        get_sregister_value(
+                                                            reg)
+
+                                                    if(value is not None):
+                                                        error_code = "00"
+                                                    else:
+                                                        error_code = "05"
+
+                                                    async_response += self.\
+                                                        etrx3x_at.\
+                                                        sread_notification(
+                                                            node_id, node_eui,
+                                                            reg, error_code,
+                                                            value=value)
                                                 else:
-                                                    error_code = "05"
+                                                    result = node.\
+                                                        set_sregister_value(
+                                                            reg, set_reg_value)
 
-                                                async_response += self.\
-                                                    etrx3x_at.\
-                                                    sread_notification(
-                                                        node_id, node_eui,
-                                                        reg, error_code,
-                                                        value=value)
+                                                    if(result is True):
+                                                        error_code = "00"
+                                                    else:
+                                                        error_code = "05"
+
+                                                    async_response += self.\
+                                                        etrx3x_at.\
+                                                        swrite_notification(
+                                                            node_id, node_eui,
+                                                            reg, error_code,
+                                                            value=value)
 
                                                 self.write_async_message(
                                                     async_response.encode(),
@@ -1180,11 +1217,14 @@ class ETRX3xSimulator(object):
                                                     delay=self.
                                                     get_local_node_delay())
 
-                                elif(len(node_addr) == 4):
+                                elif(len(node_addr) == 4 or len(node_addr) == 16):
                                     self._validate_node_identifier(node_addr)
 
-                                    node = self.local_zb_network.get_node(
-                                        node_addr)
+                                    if(len(node_addr) == 4):
+                                        node = self.local_zb_network.get_node(
+                                            node_addr)
+                                    else:  # len(node_addr == 16)
+                                        node = self.local_zb_network.get_node_eui(node_addr)
 
                                     if(node is not None):
                                         async_response = self.\
@@ -1193,67 +1233,39 @@ class ETRX3xSimulator(object):
 
                                         node_id = node.get_node_id()
                                         node_eui = node.get_node_eui()
-                                        value = node.\
-                                            get_sregister_value(
-                                                reg)
 
-                                        if(value is not None):
-                                            error_code = "00"
+                                        if read is True:
+                                            value = node.\
+                                                get_sregister_value(
+                                                    reg)
+
+                                            if(value is not None):
+                                                error_code = "00"
+                                            else:
+                                                error_code = "05"
+
+                                            async_response += self.\
+                                                etrx3x_at.\
+                                                sread_notification(
+                                                    node_id, node_eui,
+                                                    reg, error_code,
+                                                    value=value)
                                         else:
-                                            error_code = "05"
+                                            result = node.\
+                                                set_sregister_value(
+                                                    reg, set_reg_value)
 
-                                        async_response += self.\
-                                            etrx3x_at.\
-                                            sread_notification(
-                                                node_id, node_eui,
-                                                reg, error_code,
-                                                value=value)
+                                            if(result is True):
+                                                error_code = "00"
+                                            else:
+                                                error_code = "05"
 
-                                        self.write_async_message(
-                                            async_response.encode(),
-                                            delay=0.1)
-                                    else:
-                                        # Remote node not found
-                                        async_response = self.\
-                                            etrx3x_at.\
-                                            nack_response(seq_num)
+                                            async_response += self.etrx3x_at.\
+                                                swrite_notification(
+                                                    node_id, node_eui,
+                                                    error_code)
 
-                                        self.write_async_message(
-                                            async_response.encode(),
-                                            delay=self.
-                                            get_local_node_delay())
-
-                                elif(len(node_addr) == 16):
-                                    self._validate_node_identifier(node_addr)
-
-                                    node = self.local_zb_network.get_node_eui(
-                                        node_addr)
-
-                                    if(node is not None):
-                                        async_response = self.\
-                                            etrx3x_at.ack_response(
-                                                seq_num)
-
-                                        node_id = node.get_node_id()
-                                        node_eui = node.get_node_eui()
-                                        value = node.\
-                                            get_sregister_value(
-                                                reg)
-
-                                        print(node_id, node_eui, reg, value)
-
-                                        if(value is not None):
-                                            error_code = "00"
-                                        else:
-                                            error_code = "05"
-
-                                        async_response += self.\
-                                            etrx3x_at.\
-                                            sread_notification(
-                                                node_id, node_eui,
-                                                reg, error_code,
-                                                value=value)
-
+                                        # Write SREAD prompt
                                         self.write_async_message(
                                             async_response.encode(),
                                             delay=0.1)
