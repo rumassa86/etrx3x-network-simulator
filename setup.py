@@ -1,8 +1,15 @@
 from setuptools import setup
+from distutils.util import convert_path
+
+# Get version from version file
+etrx3x_sim_ns = {}
+ver_path = convert_path('etrx3x_sim/version.py')
+with open(ver_path) as ver_file:
+    exec(ver_file.read(), etrx3x_sim_ns)
 
 setup(
     name='etrx3x_sim',
-    version='0.0.1',
+    version=etrx3x_sim_ns['__version__'],
     description='Simulator to test Services built on top of ETR3x ZigBee'
                 'Network',
     url='https://github.com/rumassa86/etrx3x-network-simulator',
