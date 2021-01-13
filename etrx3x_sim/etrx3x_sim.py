@@ -266,7 +266,7 @@ class ETRX3xSimulator(object):
             try:
                 message = self.write_queue.get(True, 1)
 
-                os.write(self.master, message)
+                os.write(self.main, message)
             except queue.Empty:
                 pass
 
@@ -285,15 +285,15 @@ class ETRX3xSimulator(object):
 
     def _write_async_message(self, message, delay):
         time.sleep(delay)
-        os.write(self.master, message)
+        os.write(self.main, message)
 
     def start(self):
-        self.master, self.slave = pty.openpty()
+        self.main, self.follow = pty.openpty()
 
-        slave_name = os.ttyname(self.slave)
-        master_name = os.ttyname(self.master)
-        print("Slave : {}".format(slave_name))
-        print("Master: {}".format(master_name))
+        follow_name = os.ttyname(self.follow)
+        main_name = os.ttyname(self.main)
+        print("Follow: {}".format(follow_name))
+        print("Main  : {}".format(main_name))
 
         self.main_loop = True
 
@@ -308,7 +308,7 @@ class ETRX3xSimulator(object):
 
         while self.main_loop is True:
             try:
-                data = os.read(self.master, 1)
+                data = os.read(self.main, 1)
 
                 if(self.echo_enabled is True):
                     self.write_serial(data)
@@ -848,7 +848,7 @@ class ETRX3xSimulator(object):
 
                                 payload_binary = ""
                                 while (len(payload_binary) < payload_size):
-                                    input_binary = os.read(self.master, 1)
+                                    input_binary = os.read(self.main, 1)
                                     payload_binary += input_binary
 
                                     # TODO(rubens): implement UCAST timeout
