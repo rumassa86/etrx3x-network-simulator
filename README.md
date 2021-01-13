@@ -16,37 +16,37 @@ The ETRX3x simulator request a terminal serial from the system and return a pair
 
 ## Running Simulator
 
-To run the simulator:
+To run the simulator using `simple_network.json` ZigBee Network toplogy:
 
 ```
-$ python -m lib.etrx3x_sim
+$ python -m lib.etrx3x_sim test/simple_network.json
 ```
 
-It will show the serial port that can be used to communicate with simulator (see *slave*):
+It will show the serial port that can be used to communicate with simulator (see *Follow*):
 
 ```
 Starting ETRX3x Simulator
-Slave : /dev/pts/18
-Master: /dev/ptmx
+Follow: /dev/pts/0
+Main  : /dev/ptmx
 Starting write thread queue
 ```
-
-Currently, the network contains a hard coded network structure with two nodes (ED00010000000000 - COO and ED00010000000001 - FFD).
 
 ## Running Serial terminal
 
 You can use any Serial program to connect into it such as Picocom, Minicom, Miniterm, etc.
 
-To connect it to the Simulator slave port (in this tutorial is _/dev/pts/2_) using Picocom, do:
+To connect it into the Simulator _follow_ port (in this tutorial is _/dev/pts/0_) using Picocom, do:
 
 ```
-$ picocom /dev/pts/2
+$ picocom /dev/pts/0
 ```
+
+Note: it is not necessary to set baudrate.
 
 # _TODO_ List
 
-- [ ] Read the input network topology and ETRX3x nodes configuration;
-- [ ] Add ATREMS for write SRegisters;
+- [X] Read the input network topology and ETRX3x nodes configuration;
+- [X] Add ATREMS for write SRegisters;
 - [ ] Add firmware (MCU behaviors for send data to local module to test performance of incoming messages
 - [ ] Add code documentation based on Sphinx
 - [ ] Add automated tests
