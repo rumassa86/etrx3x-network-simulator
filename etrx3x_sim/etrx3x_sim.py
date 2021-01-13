@@ -4,9 +4,9 @@
 import os
 import pty
 import re
-import time
 import queue
 import threading
+from threading import Timer
 
 from etrx3x_sim.etrx3x_at_cmds import ETRX3xATCommand
 from etrx3x_sim.sgcon_validators import validate_node_identifier
@@ -278,13 +278,11 @@ class ETRX3xSimulator(object):
         #     "Starting thread to send async response {!r} in"
         #     " {} seconds".format(message, delay))
 
-        self.write_thread = threading.Thread(
-            target=self._write_async_message, args=(message, delay))
-        self.write_thread.setDaemon(True)
+        self.write_thread = Timer(
+            delay, self._write_async_message, args=[message])
         self.write_thread.start()
 
-    def _write_async_message(self, message, delay):
-        time.sleep(delay)
+    def _write_async_message(self, message):
         os.write(self.main, message)
 
     def start(self):
