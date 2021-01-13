@@ -10,8 +10,8 @@ from threading import Timer
 
 from etrx3x_sim.etrx3x_at_cmds import ETRX3xATCommand
 from etrx3x_sim.sgcon_validators import validate_node_identifier
-from etrx3x_sim.zigbee import ZigBeeNetwork
 from etrx3x_sim.etrx3x_baseconfig import default_router, default_coo
+from etrx3x_sim.firmware.basic_firmware import ZBNetworkMCU
 import argparse
 import json
 
@@ -136,7 +136,7 @@ class ETRX3xSimulator(object):
 
     def _load_zb_networks(self, zbnet_list, local_node_eui, local_pan_eid):
         for zbnet in zbnet_list:
-            net = ZigBeeNetwork()
+            net = ZBNetworkMCU()
 
             pan = zbnet["pan"]
             pan_channel = pan["channel"]
@@ -162,7 +162,9 @@ class ETRX3xSimulator(object):
                     node_eui,
                     node_id=node_id,
                     node_type=node_type,
-                    registers=[]  # Use '[]' to set new array object
+                    registers=[],  # Use '[]' to set new array object
+                    dev_type="echo",
+                    write_message=self.write_async_message
                 )
 
                 if(node_type == "COO"):
@@ -978,7 +980,7 @@ class ETRX3xSimulator(object):
                             try:
                                 # Validate node_id parameter
                                 node_id = params[0]
-                                # payload = ",".join(params[1:])
+                                payload = ",".join(params[1:])
 
                                 self._validate_node_identifier(node_id)
 
@@ -992,17 +994,20 @@ class ETRX3xSimulator(object):
                                     node_id)
 
                                 if(node is not None):
-                                    # TODO(rubens): forward message to
-                                    # MCU handler
-                                    # async_response = self.etrx3x_at.\
-                                    #     ucast_notification()
-
+                                    print("{} -> {}: {}".format(
+                                        self.local_node.get_node_eui(),
+                                        node_id, payload))
                                     async_response = self.etrx3x_at.\
                                         ack_response(seq_num)
 
                                     self.write_async_message(
                                         async_response.encode(),
                                         delay=0.1)
+
+                                    # TODO(rubens): forward message to
+                                    # MCU handler
+                                    node.on_message(node_id, payload)
+
                                 else:
                                     # Remote
                                     async_response = self.etrx3x_at.\
