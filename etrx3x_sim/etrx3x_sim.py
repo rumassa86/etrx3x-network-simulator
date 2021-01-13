@@ -529,8 +529,8 @@ class ETRX3xSimulator(object):
                         elif(re.match(
                                 r"ats[0-9a-f]{2}=[0-9a-z]*", store_data_low)):
                             # atsXX=V* = set local s register
-                            reg = store_data[3:5].upper()
-                            new_value = store_data[6:]
+                            reg = store_data_low[3:5].upper()
+                            new_value = store_data_low[6:]
                             try:
                                 self.etrx3x_at.validate_sregister_value(
                                     reg, new_value)
