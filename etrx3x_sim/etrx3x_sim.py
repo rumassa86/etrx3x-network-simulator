@@ -12,6 +12,8 @@ from etrx3x_sim.etrx3x_at_cmds import ETRX3xATCommand
 from etrx3x_sim.sgcon_validators import validate_node_identifier
 from etrx3x_sim.zigbee import ZigBeeNetwork
 from etrx3x_sim.etrx3x_baseconfig import default_router, default_coo
+import argparse
+import json
 
 
 class ETRX3xSimulatorException(Exception, object):
@@ -1328,50 +1330,33 @@ class ETRX3xSimulator(object):
 
 
 def main():
-    coo_zbnode = {
-        "id": "0000",
-        "eui": "ED00010000000000",
-        "type": "COO",
-        "parent_id": "FFFF",
-        "sregs": {
-            "3C": "5600010000000;SGFake;1.0;0"
-        }
-    }
 
-    zbnode0 = {
-        "id": "0001",
-        "eui": "ED00010000000001",
-        "type": "FFD",
-        "parent_id": "0000",
-        "sregs": {
-            "3C": "5600010000001;SGFake;1.0;0"
-        }
-    }
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        'input_file',
+        type=open,
+        help='ZigBee Network JSON file path.'
+    )
 
-    zblink = {
-        "id_src": "0000",
-        "id_dst": "0001",
-        "lqi": 255
-    }
+    parser.add_argument('-v, --version', action='version',
+                        version="0.1.0")
 
-    pan = {
-        "channel": 26,
-        "id": "0001",
-        "eid": "E000000000000001",
-        "netkey": "00000000000000000000000000000001",
-        "linkkey": "00000000000000000000000000000001"
-    }
+    args = parser.parse_args()
 
-    zbnet0 = {
-        "nodes": [coo_zbnode, zbnode0],
-        "links": [zblink],
-        "pan": pan,
+    net = json.load(args.input_file)
+
+    zbnet = {
+        "nodes": net["nodes"],
+        "links": net["links"],
+        "pan": net["pan"],
     }
+    coo_zbnode_eui = net["nodes"][0]["eui"]
+    pan_eid = net["pan"]["eid"]
 
     etrx3x_sim = ETRX3xSimulator(
-        [zbnet0],
-        coo_zbnode["eui"],
-        pan["eid"],
+        [zbnet],
+        coo_zbnode_eui,
+        pan_eid,
         router_etrx3x_sregs=default_router,
         coo_etrx3x_sregs=default_coo
     )
