@@ -835,8 +835,8 @@ class ETRX3xSimulator(object):
                             # in address table index format
                             params = store_data_low.split(":")[1].split(",")
 
-                            table_index = params[0]
-                            payload_size_hex = params[1]
+                            payload_size_hex = params[0]
+                            table_index = params[1]
                             try:
                                 address_table_index = int(table_index, 16)
                                 payload_size = int(payload_size_hex, 16)
@@ -844,9 +844,9 @@ class ETRX3xSimulator(object):
                                 # TODO(rubens): add validation for payload size
                                 # zero
 
-                                self.write_serial(">")
+                                self.write_serial(b">")
 
-                                payload_binary = ""
+                                payload_binary = b""
                                 while (len(payload_binary) < payload_size):
                                     input_binary = os.read(self.main, 1)
                                     payload_binary += input_binary
