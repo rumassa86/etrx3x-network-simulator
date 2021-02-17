@@ -813,20 +813,77 @@ class ETRX3xSimulator(object):
                             response += self.etrx3x_at.ok_response()
 
                         elif(re.match(
-                                r"at\+ucastb:[0-9a-f]{2},[0-9a-f]{16}",
+                                r"at\+ucastb:[0-9a-f]{2},([0-9a-f]{16}|[0-9a-f]{4})",
                                 store_data_low)):
                             # Send UCAST with binary payloa for target node
                             # eui address format
                             # 05 = invalid_parameter
-                            response = self.etrx3x_at.error_response("05")
-
-                        elif(re.match(
-                                r"at\+ucastb:[0-9a-f]{2},[0-9a-f]{4}",
-                                store_data_low)):
                             # Send UCAST with binary payload for target node
-                            # id address format
-                            # 05 = invalid_parameter
-                            response = self.etrx3x_at.error_response("05")
+                            # in address table index format
+                            params = store_data_low.split(":")[1].split(",")
+
+                            try:
+                                payload_size_hex = params[0]
+                                node_id = params[1]
+
+                                self._validate_node_identifier(node_id)
+
+                                payload_size = int(payload_size_hex, 16)
+
+                                # TODO(rubens): add validation for payload size
+                                # zero
+
+                                self.write_serial(b">")
+
+                                payload_binary = b""
+                                while (len(payload_binary) < payload_size):
+                                    input_binary = os.read(self.main, 1)
+                                    payload_binary += input_binary
+                                    # TODO(rubens): implement UCAST timeout
+
+                                print(payload_binary.hex())
+
+                                seq_num = self.get_seq_number()
+                                response = self.etrx3x_at.seq_response(seq_num)
+                                response += self.etrx3x_at.ok_response()
+
+                                if(len(node_id) == 4):
+                                    node = self.local_zb_network.get_node(
+                                        node_id)
+                                elif(len(node_id) == 16):
+                                    node = self.local_zb_network.get_node_eui(
+                                        node_id)
+
+                                if(node is not None):
+                                    # TODO(rubens): forward message to
+                                    # MCU handler
+                                    # async_response = self.etrx3x_at.\
+                                    #     ucast_notification()
+
+                                    async_response = self.etrx3x_at.\
+                                        ack_response(seq_num)
+
+                                    self.write_async_message(
+                                        async_response.encode(),
+                                        delay=0.1)
+                                else:
+                                    # Remote node not found
+                                    async_response = self.etrx3x_at.\
+                                        nack_response(seq_num)
+
+                                    self.write_async_message(
+                                        async_response.encode(),
+                                        delay=self.
+                                        get_local_node_delay())
+
+                            except ValueError:
+                                # 05 - Invalid parameter
+                                response = self.etrx3x_at.error_response("05")
+
+                            except IndexError:
+                                # 01 - could poll parent (default error for
+                                # invalid address trable index)
+                                response = self.etrx3x_at.error_response("01")
 
                         elif(re.match(
                                 r"at\+ucastb:[0-9a-f]{2},[0-9a-f]{2}",
@@ -850,8 +907,9 @@ class ETRX3xSimulator(object):
                                 while (len(payload_binary) < payload_size):
                                     input_binary = os.read(self.main, 1)
                                     payload_binary += input_binary
-
                                     # TODO(rubens): implement UCAST timeout
+
+                                print(payload_binary.hex())
 
                                 seq_num = self.get_seq_number()
                                 response = self.etrx3x_at.seq_response(
