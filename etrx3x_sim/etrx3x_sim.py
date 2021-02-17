@@ -1247,7 +1247,7 @@ class ETRX3xSimulator(object):
                                                         etrx3x_at.\
                                                         sread_notification(
                                                             node_id, node_eui,
-                                                            reg, error_code,
+                                                            reg.upper(), error_code,
                                                             value=value)
                                                 else:
                                                     result = node.\
@@ -1263,8 +1263,7 @@ class ETRX3xSimulator(object):
                                                         etrx3x_at.\
                                                         swrite_notification(
                                                             node_id, node_eui,
-                                                            reg, error_code,
-                                                            value=value)
+                                                            error_code)
 
                                                 self.write_async_message(
                                                     async_response.encode(),
@@ -1311,7 +1310,7 @@ class ETRX3xSimulator(object):
                                                 etrx3x_at.\
                                                 sread_notification(
                                                     node_id, node_eui,
-                                                    reg, error_code,
+                                                    reg.upper(), error_code,
                                                     value=value)
                                         else:
                                             result = node.\
